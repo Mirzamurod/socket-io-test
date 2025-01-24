@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import ContactList from './_components/contact-list'
 import AddContact from './_components/add-contact'
 import { useCurrentContact } from '@/hooks/use-current'
-import { emailSchema } from '@/lib/validation'
+import { emailSchema, messageSchema } from '@/lib/validation'
 import TopChat from './_components/top-chat'
 import Chat from './_components/chat'
 
@@ -22,11 +22,20 @@ const ChatPage = () => {
     defaultValues: { email: '' },
   })
 
+  const messageForm = useForm<z.infer<typeof messageSchema>>({
+    resolver: zodResolver(messageSchema),
+    defaultValues: { text: '', image: '' },
+  })
+
   useEffect(() => {
     router.replace('/')
   }, [])
 
   const onCreateContact = (values: z.infer<typeof emailSchema>) => {
+    console.log(values)
+  }
+
+  const onSendMessage = (values: z.infer<typeof messageSchema>) => {
     console.log(values)
   }
 
@@ -49,7 +58,7 @@ const ChatPage = () => {
         ) : (
           <div className='w-full relative'>
             <TopChat />
-            <Chat />
+            <Chat messageForm={messageForm} onSendMessage={onSendMessage} messages={messages} />
           </div>
         )}
         {/* Chat */}
@@ -62,6 +71,15 @@ const contacts = [
   { email: 'test@gamil.com', _id: '1' },
   { email: 'test1@gamil.com', _id: '2' },
   { email: 'test3@gamil.com', _id: '3' },
+]
+
+const messages = [
+  { text: 'test@gamil.com', _id: '1' },
+  { text: 'test1@gamil.com', _id: '2' },
+  { text: 'test3@gamil.com', _id: '3' },
+  { text: 'test4@gamil.com', _id: '4' },
+  { text: 'test5@gamil.com', _id: '5' },
+  { text: 'test6@gamil.com', _id: '6' },
 ]
 
 export default ChatPage
