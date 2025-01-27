@@ -1,9 +1,12 @@
 import {} from 'react'
+import { Settings2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useCurrentContact } from '@/hooks/use-current'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Settings2 } from 'lucide-react'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
+import Image from 'next/image'
 
 const TopChat = () => {
   const { currentContact } = useCurrentContact()
@@ -46,9 +49,68 @@ const TopChat = () => {
           </p>
         </div>
       </div>
-      <Button size='icon' variant='secondary'>
-        <Settings2 />
-      </Button>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button size='icon' variant='secondary'>
+            <Settings2 />
+          </Button>
+        </SheetTrigger>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle />
+          </SheetHeader>
+          <div className='mx-auto w-1/2 h-36 relative'>
+            <Avatar className='w-full h-36'>
+              <AvatarImage
+                src={currentContact?.avatar}
+                alt={currentContact?.email}
+                className='object-cover'
+              />
+              <AvatarFallback className='text-6xl uppercase font-spaceGrotesk'>
+                {currentContact?.email[0]}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <Separator />
+          <h1 className='text-center capitalize font-spaceGrotesk text-xl'>
+            {currentContact?.email}
+          </h1>
+          <div className='flex flex-col space-y-1'>
+            {['firstName', 'lastName'].map(item =>
+              currentContact?.[item as '_id'] ? (
+                <div className='flex items-center gap-1 mt-4' key={item}>
+                  <p className='font-spaceGrotesk'>First Name: </p>
+                  <p className='font-spaceGrotesk text-muted-foreground'>
+                    {currentContact?.[item as '_id']}
+                  </p>
+                </div>
+              ) : null
+            )}
+            {currentContact?.bio ? (
+              <div className='flex items-center gap-1 mt-4'>
+                <p className='font-spaceGrotesk'>
+                  About:{' '}
+                  <span className='font-spaceGrotesk text-muted-foreground'>
+                    {currentContact?.bio}
+                  </span>
+                </p>
+              </div>
+            ) : null}
+            <Separator />
+            <h2 className='text-xl'>Image</h2>
+            <div className='flex flex-col space-y-2'>
+              <div className='w-full h-36 relative'>
+                <Image
+                  src='https://github.com/shadcn.png'
+                  alt='https://github.com/shadcn.png'
+                  fill
+                  className='object-cover rounded-md'
+                />
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

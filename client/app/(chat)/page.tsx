@@ -12,6 +12,7 @@ import { useCurrentContact } from '@/hooks/use-current'
 import { emailSchema, messageSchema } from '@/lib/validation'
 import TopChat from './_components/top-chat'
 import Chat from './_components/chat'
+import { IUser } from '@/types'
 
 const ChatPage = () => {
   const router = useRouter()
@@ -67,8 +68,14 @@ const ChatPage = () => {
   )
 }
 
-const contacts = [
-  { email: 'test@gamil.com', _id: '1' },
+const contacts: IUser[] = [
+  {
+    email: 'test@gamil.com',
+    _id: '1',
+    firstName: 'John',
+    lastName: 'Doe',
+    bio: 'lorem text input bir nimala',
+  },
   { email: 'test1@gamil.com', _id: '2' },
   { email: 'test3@gamil.com', _id: '3' },
 ]
