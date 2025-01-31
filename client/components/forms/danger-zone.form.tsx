@@ -1,6 +1,8 @@
 import {} from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
+import { signOut, useSession } from 'next-auth/react'
+import { useMutation } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Dialog,
@@ -15,15 +17,32 @@ import { Separator } from '../ui/separator'
 import { confirmTextSchema } from '@/lib/validation'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
+import { generateToken } from '@/lib/generate-token'
+import { axiosClient } from '@/http/axios'
+import { toast } from '@/hooks/use-toast'
 
 const DangerZoneForm = () => {
+  const { data: session } = useSession()
   const form = useForm<z.infer<typeof confirmTextSchema>>({
     resolver: zodResolver(confirmTextSchema),
     defaultValues: { confirmText: '' },
   })
-  const onSubmit = (values: z.infer<typeof confirmTextSchema>) => {
-    console.log(values)
-  }
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      const token = await generateToken(session?.currentUser?._id)
+      const { data } = await axiosClient.delete('/user', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      return data
+    },
+    onSuccess: () => {
+      toast({ description: 'Profile deleted successfully' })
+      signOut()
+    },
+  })
+
+  const onSubmit = () => mutate()
 
   return (
     <>
@@ -54,13 +73,13 @@ const DangerZoneForm = () => {
                       Please type <span className='font-bold'>DELETE</span> to confirm
                     </FormDescription>
                     <FormControl>
-                      <Input className='bg-secondary' {...field} />
+                      <Input className='bg-secondary' disabled={isPending} {...field} />
                     </FormControl>
                     <FormMessage className='text-xs text-red-500' />
                   </FormItem>
                 )}
               />
-              <Button type='submit' className='w-full font-bold'>
+              <Button type='submit' className='w-full font-bold' disabled={isPending}>
                 Submit
               </Button>
             </form>

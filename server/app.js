@@ -1,14 +1,19 @@
 const express = require('express')
 const http = require('http')
 const cookieParser = require('cookie-parser')
+const cors = require('cors')
 const { default: mongoose } = require('mongoose')
 const errorMiddleware = require('./middlewares/error.middleware')
 require('dotenv').config()
 
 const app = express()
 
+app.use(
+  cors({ origin: 'http://localhost:3000', methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] })
+)
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
 app.use(require('./routes'))
 
 app.use(errorMiddleware)

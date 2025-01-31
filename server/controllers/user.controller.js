@@ -140,8 +140,8 @@ class UserController {
 
   async updateProfile(req, res, next) {
     try {
-      const { userId, ...payload } = req.body
-      await userModel.findByIdAndUpdate(userId, payload)
+      const user = req.user
+      await userModel.findByIdAndUpdate(user._id, req.body)
       res.status(200).json({ message: 'Profile updated successfully' })
     } catch (error) {
       next(error)
@@ -154,7 +154,7 @@ class UserController {
       const existingUser = await userModel.findOne({ email })
       if (existingUser) throw BaseError.BadRequest('User with this email does not exists')
       await mailService.sendOtp(email)
-      res.status(200).json({ message: 'OTP sent successfully', success: true })
+      res.status(200).json({ message: 'OTP sent successfully', success: true, email })
     } catch (error) {
       next(error)
     }
@@ -165,7 +165,7 @@ class UserController {
       const { email, otp } = req.body
       const result = await mailService.verifyOtp(email, otp)
       if (result) {
-        const userId = '6795d883444a47d4f0578aed'
+        const userId = req.user._id
         const user = await userModel.findByIdAndUpdate(userId, { email }, { new: true })
         res.status(200).json({ user, success: true })
       }
@@ -176,7 +176,7 @@ class UserController {
 
   async deleteUser(req, res, next) {
     try {
-      const userId = '6795d883444a47d4f0578aed'
+      const userId = req.user._id
       await userModel.findByIdAndDelete(userId)
       res.status(200).json({ message: 'User deleted successfully' })
     } catch (error) {

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useTheme } from 'next-themes'
+import { signOut, useSession } from 'next-auth/react'
+import { useMutation } from '@tanstack/react-query'
 import { LogIn, Menu, Moon, Settings2, Upload, UserPlus, VolumeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -23,10 +25,30 @@ import InformationForm from '@/components/forms/information.form'
 import EmailForm from '@/components/forms/email.form'
 import NotificationForm from '@/components/forms/notification.form'
 import DangerZoneForm from '@/components/forms/danger-zone.form'
+import { generateToken } from '@/lib/generate-token'
+import { axiosClient } from '@/http/axios'
+import { toast } from '@/hooks/use-toast'
 
 const Settings = () => {
   const { resolvedTheme, setTheme } = useTheme()
+  const { data: session, update } = useSession()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (muted: boolean) => {
+      const token = await generateToken(session?.currentUser?._id)
+      const { data } = await axiosClient.patch(
+        '/user/profile',
+        { muted },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      return data
+    },
+    onSuccess: () => {
+      toast({ description: 'Profile updated successfully' })
+      update()
+    },
+  })
 
   return (
     <>
@@ -38,7 +60,7 @@ const Settings = () => {
         </PopoverTrigger>
         <PopoverContent className='p-0 w-80'>
           <h2 className='pt-2 pl-2 text-muted-foreground'>
-            Setting: <span className='text-white'>test@gmail.com</span>
+            Setting: <span className='text-white'>{session?.currentUser?.email}</span>
           </h2>
           <Separator />
           <div className='flex flex-col'>
@@ -56,7 +78,13 @@ const Settings = () => {
                   <item.icon size={16} />
                   <span className='text-sm'>{item.text}</span>
                 </div>
-                {item.text === 'Mute' ? <Switch /> : null}
+                {item.text === 'Mute' ? (
+                  <Switch
+                    disabled={isPending}
+                    checked={!session?.currentUser?.muted}
+                    onCheckedChange={() => mutate(!session?.currentUser?.muted)}
+                  />
+                ) : null}
               </div>
             ))}
 
@@ -70,7 +98,10 @@ const Settings = () => {
                 onCheckedChange={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               />
             </div>
-            <div className='flex justify-between items-center bg-destructive p-2 cursor-pointer'>
+            <div
+              className='flex justify-between items-center bg-destructive p-2 cursor-pointer'
+              onClick={() => signOut()}
+            >
               <div className='flex items-center gap-1'>
                 <LogIn size={16} />
                 <span>Logout</span>

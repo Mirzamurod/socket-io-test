@@ -69,6 +69,7 @@ const ChatPage = () => {
 }
 
 const contacts: IUser[] = [
+  // @ts-ignore
   {
     email: 'test@gamil.com',
     _id: '1',
@@ -76,7 +77,9 @@ const contacts: IUser[] = [
     lastName: 'Doe',
     bio: 'lorem text input bir nimala',
   },
+  // @ts-ignore
   { email: 'test1@gamil.com', _id: '2' },
+  // @ts-ignore
   { email: 'test3@gamil.com', _id: '3' },
 ]
 
