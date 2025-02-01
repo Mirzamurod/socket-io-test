@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast'
 
 const onError = (error: IError) => {
   if (error.response?.data?.message) {
-    toast({ description: error.response.data.message, variant: 'destructive' })
+    return toast({ description: error.response.data.message, variant: 'destructive' })
   }
   return toast({ description: 'Something went wrong', variant: 'destructive' })
 }

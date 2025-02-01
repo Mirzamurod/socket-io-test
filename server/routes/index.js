@@ -10,18 +10,18 @@ router.group('/auth', route => {
 })
 
 router.group('/user', route => {
-  route.get('/messages/:contactId', userController.getMessages)
-  route.post('/message', userController.createMessage)
-  route.get('/contacts', userController.getContacts)
-  route.post('/contact', userController.createContact)
-  route.post('/reaction', userController.createReaction)
+  route.get('/messages/:contactId', authMiddleware, userController.getMessages)
+  route.post('/message', authMiddleware, userController.createMessage)
+  route.get('/contacts', authMiddleware, userController.getContacts)
+  route.post('/contact', authMiddleware, userController.createContact)
+  route.post('/reaction', authMiddleware, userController.createReaction)
   route.patch('/profile', authMiddleware, userController.updateProfile)
-  route.patch('/message/:messageId', userController.updateMessage)
-  route.delete('/message/:messageId', userController.deleteMessage)
+  route.patch('/message/:messageId', authMiddleware, userController.updateMessage)
+  route.delete('/message/:messageId', authMiddleware, userController.deleteMessage)
   route.post('/send-otp', authMiddleware, userController.sendOtp)
   route.patch('/email', authMiddleware, userController.updateEmail)
   route.delete('/', authMiddleware, userController.deleteUser)
-  route.post('/message-read', userController.messageRead)
+  route.post('/message-read', authMiddleware, userController.messageRead)
 })
 
 module.exports = router

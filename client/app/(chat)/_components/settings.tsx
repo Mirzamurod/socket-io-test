@@ -14,7 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +28,12 @@ import DangerZoneForm from '@/components/forms/danger-zone.form'
 import { generateToken } from '@/lib/generate-token'
 import { axiosClient } from '@/http/axios'
 import { toast } from '@/hooks/use-toast'
+import { UploadButton } from '@/lib/uploadthing'
+
+interface IPayload {
+  muted?: boolean
+  avatar?: string
+}
 
 const Settings = () => {
   const { resolvedTheme, setTheme } = useTheme()
@@ -35,13 +41,11 @@ const Settings = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (muted: boolean) => {
+    mutationFn: async (payload: IPayload) => {
       const token = await generateToken(session?.currentUser?._id)
-      const { data } = await axiosClient.patch(
-        '/user/profile',
-        { muted },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const { data } = await axiosClient.patch('/user/profile', payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       return data
     },
     onSuccess: () => {
@@ -82,7 +86,7 @@ const Settings = () => {
                   <Switch
                     disabled={isPending}
                     checked={!session?.currentUser?.muted}
-                    onCheckedChange={() => mutate(!session?.currentUser?.muted)}
+                    onCheckedChange={() => mutate({ muted: !session?.currentUser?.muted })}
                   />
                 ) : null}
               </div>
@@ -121,11 +125,26 @@ const Settings = () => {
           <Separator />
           <div className='mx-auto w-1/2 h-36 relative'>
             <Avatar className='w-full h-36'>
-              <AvatarFallback className='text-6xl uppercase'>sb</AvatarFallback>
+              <AvatarImage
+                src={session?.currentUser?.avatar}
+                alt={session?.currentUser?.firstName}
+                className='object-cover'
+              />
+              <AvatarFallback className='text-6xl uppercase'>
+                {session?.currentUser?.email[0]}
+              </AvatarFallback>
             </Avatar>
-            <Button size='icon' className='absolute right-0 bottom-0'>
-              <Upload size={16} />
-            </Button>
+            <UploadButton
+              endpoint='imageUploader'
+              onClientUploadComplete={res => mutate({ avatar: res[0].url })}
+              className='absolute right-0 bottom-0'
+              config={{ appendOnPaste: true, mode: 'auto' }}
+              appearance={{
+                allowedContent: { display: 'none' },
+                button: { width: 40, height: 40, borderRadius: '100%' },
+              }}
+              content={{ button: <Upload size={16} /> }}
+            />
           </div>
           <Accordion type='single' collapsible className='mt-4'>
             {[

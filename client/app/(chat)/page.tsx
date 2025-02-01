@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -13,10 +13,18 @@ import { emailSchema, messageSchema } from '@/lib/validation'
 import TopChat from './_components/top-chat'
 import Chat from './_components/chat'
 import { IUser } from '@/types'
+import { useLoading } from '@/hooks/use-loading'
+import { axiosClient } from '@/http/axios'
+import { useSession } from 'next-auth/react'
+import { generateToken } from '@/lib/generate-token'
+import { toast } from '@/hooks/use-toast'
 
 const ChatPage = () => {
   const router = useRouter()
   const { currentContact } = useCurrentContact()
+  const { setCreating, setLoading, isLoading } = useLoading()
+  const { data: session } = useSession()
+  const [contacts, setContacts] = useState<IUser[]>([])
 
   const contactForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -28,12 +36,49 @@ const ChatPage = () => {
     defaultValues: { text: '', image: '' },
   })
 
+  const getContacts = async () => {
+    setLoading(true)
+    const token = await generateToken(session?.currentUser?._id)
+    try {
+      const { data } = await axiosClient.get<{ contacts: IUser[] }>('/user/contacts', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setContacts(data.contacts)
+    } catch (error) {
+      toast({ description: 'Cannot fetch contacts', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     router.replace('/')
   }, [])
 
-  const onCreateContact = (values: z.infer<typeof emailSchema>) => {
-    console.log(values)
+  useEffect(() => {
+    if (session?.currentUser?._id) {
+      getContacts()
+    }
+  }, [session?.currentUser?._id])
+
+  const onCreateContact = async (values: z.infer<typeof emailSchema>) => {
+    setCreating(true)
+    const token = await generateToken(session?.currentUser?._id)
+    try {
+      const { data } = await axiosClient.post<{ contact: IUser }>('/user/contact', values, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setContacts(prev => [...prev, data.contact])
+      toast({ description: 'Contact added successfully' })
+      contactForm.reset()
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        return toast({ description: error.response.data.message, variant: 'destructive' })
+      }
+      return toast({ description: 'Something went wrong', variant: 'destructive' })
+    } finally {
+      setCreating(false)
+    }
   }
 
   const onSendMessage = (values: z.infer<typeof messageSchema>) => {
@@ -45,11 +90,13 @@ const ChatPage = () => {
       {/* Chat */}
       <div className='w-80 h-screen border-r fixed inset-0 z-50'>
         {/* Loading */}
-        {/* <div className='w-full h-[95vh] flex justify-center items-center'>
-          <Loader2 size={50} className='animate-spin' />
-        </div> */}
+        {isLoading ? (
+          <div className='w-full h-[95vh] flex justify-center items-center'>
+            <Loader2 size={50} className='animate-spin' />
+          </div>
+        ) : null}
         {/* Contact list */}
-        <ContactList contacts={contacts} />
+        {!isLoading ? <ContactList contacts={contacts} /> : null}
       </div>
       {/* Chat area */}
       <div className='pl-80 w-full'>
@@ -67,21 +114,6 @@ const ChatPage = () => {
     </div>
   )
 }
-
-const contacts: IUser[] = [
-  // @ts-ignore
-  {
-    email: 'test@gamil.com',
-    _id: '1',
-    firstName: 'John',
-    lastName: 'Doe',
-    bio: 'lorem text input bir nimala',
-  },
-  // @ts-ignore
-  { email: 'test1@gamil.com', _id: '2' },
-  // @ts-ignore
-  { email: 'test3@gamil.com', _id: '3' },
-]
 
 const messages = [
   { text: 'test@gamil.com', _id: '1' },

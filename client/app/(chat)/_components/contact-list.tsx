@@ -1,6 +1,6 @@
 'use client'
 
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { IUser } from '@/types'
 import Settings from './settings'
@@ -17,6 +17,11 @@ const ContactList: FC<IProps> = props => {
   const { contacts } = props
   const router = useRouter()
   const { currentContact, setCurrentContact } = useCurrentContact()
+  const [query, setQuery] = useState('')
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.email.toLocaleLowerCase().includes(query.toLocaleLowerCase())
+  )
 
   const renderContact = (contact: IUser) => {
     const onChat = () => {
@@ -45,7 +50,9 @@ const ContactList: FC<IProps> = props => {
             <div className='size-3 bg-green-500 absolute rounded-full bottom-0 right-0 !z-50' />
           </div>
           <div>
-            <h2 className='capitalize line-clamp-1 text-sm'>{contact.email.split('@')[0]}</h2>
+            <h2 className='capitalize line-clamp-1 text-sm'>
+              {contact.firstName ?? contact.email.split('@')[0]}
+            </h2>
             <p className='text-xs line-clamp-1 text-muted-foreground'>No message yet</p>
           </div>
         </div>
@@ -62,15 +69,20 @@ const ContactList: FC<IProps> = props => {
       <div className='flex items-center bg-background pl-2 sticky top-0'>
         <Settings />
         <div className='m-2 w-full'>
-          <Input className='bg-secondary' type='text' placeholder='Search...' />
+          <Input
+            className='bg-secondary'
+            placeholder='Search...'
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
         </div>
       </div>
-      {contacts.length === 0 ? (
+      {filteredContacts.length === 0 ? (
         <div className='w-full h-[95vh] flex justify-center items-center text-center text-muted-foreground'>
           <p>Contact list is empty</p>
         </div>
       ) : (
-        contacts.map(contact => <div key={contact._id}>{renderContact(contact)}</div>)
+        filteredContacts.map(contact => <div key={contact._id}>{renderContact(contact)}</div>)
       )}
     </div>
   )

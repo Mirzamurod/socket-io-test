@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { emailSchema } from '@/lib/validation'
+import { useLoading } from '@/hooks/use-loading'
 
 interface IProps {
   contactForm: UseFormReturn<{ email: string }>
@@ -15,6 +16,7 @@ interface IProps {
 
 const AddContact: FC<IProps> = props => {
   const { contactForm, onCreateContact } = props
+  const { isCreating } = useLoading()
 
   return (
     <div className='h-screen w-full flex z-40 relative'>
@@ -34,6 +36,7 @@ const AddContact: FC<IProps> = props => {
                       <Input
                         placeholder='test@gmail.com'
                         className='h-10 bg-secondary'
+                        disabled={isCreating}
                         {...field}
                       />
                     </FormControl>
@@ -41,7 +44,7 @@ const AddContact: FC<IProps> = props => {
                   </FormItem>
                 )}
               />
-              <Button type='submit' className='w-full' size='lg'>
+              <Button type='submit' className='w-full' size='lg' disabled={isCreating}>
                 Submit
               </Button>
             </form>
