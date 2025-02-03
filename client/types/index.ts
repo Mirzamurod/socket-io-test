@@ -20,4 +20,17 @@ export interface IUser {
   notificationSound: string
   sendingSound: string
   contacts: IUser[]
+  lastMessage?: IMessage | null
+}
+
+export interface IMessage {
+  _id: string
+  text: string
+  image: string
+  reaction: string
+  sender: IUser
+  receiver: IUser
+  status: string
+  createdAt: string
+  updatedAt: string
 }

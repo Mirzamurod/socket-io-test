@@ -58,7 +58,7 @@ const Settings = () => {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button size='icon' variant='secondary'>
+          <Button size='icon' variant='secondary' className='max-md:w-full'>
             <Menu />
           </Button>
         </PopoverTrigger>
@@ -85,7 +85,7 @@ const Settings = () => {
                 {item.text === 'Mute' ? (
                   <Switch
                     disabled={isPending}
-                    checked={!session?.currentUser?.muted}
+                    checked={session?.currentUser?.muted}
                     onCheckedChange={() => mutate({ muted: !session?.currentUser?.muted })}
                   />
                 ) : null}
@@ -115,7 +115,7 @@ const Settings = () => {
         </PopoverContent>
       </Popover>
       <Sheet open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <SheetContent side='left' className='w-80 p-2'>
+        <SheetContent side='left' className='w-80 p-2 overflow-y-scroll max-md:w-full'>
           <SheetHeader>
             <SheetTitle>My profile</SheetTitle>
             <SheetDescription>
@@ -123,7 +123,7 @@ const Settings = () => {
             </SheetDescription>
           </SheetHeader>
           <Separator />
-          <div className='mx-auto w-1/2 h-36 relative'>
+          <div className='mx-auto w-1/2 max-md:w-1/4 h-36 relative'>
             <Avatar className='w-full h-36'>
               <AvatarImage
                 src={session?.currentUser?.avatar}

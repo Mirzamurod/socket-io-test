@@ -7,8 +7,9 @@ const mailService = require('../service/mail.service')
 class UserController {
   async getMessages(req, res, next) {
     try {
-      const user = '6795d883444a47d4f0578aed'
+      const user = req.user._id
       const { contactId } = req.params
+
       const messages = await messageModel
         .find({
           $or: [
@@ -32,14 +33,17 @@ class UserController {
 
   async createMessage(req, res, next) {
     try {
-      const { sender, receiver, ...payload } = req.body
-      const newMessage = await messageModel.create(req.body)
-      const currentMessage = await messageModel
-        .findById(newMessage._id)
+      const userId = req.user._id
+      const createdMessage = await messageModel.create({ ...req.body, sender: userId })
+      const newMessage = await messageModel
+        .findById(createdMessage._id)
         .populate({ path: 'sender', select: 'email' })
         .populate({ path: 'receiver', select: 'email' })
 
-      res.status(201).json({ newMessage: currentMessage, success: true })
+      const receiver = await userModel.findById(createdMessage.receiver)
+      const sender = await userModel.findById(createdMessage.sender)
+
+      res.status(201).json({ newMessage, receiver, sender, success: true })
     } catch (error) {
       next(error)
     }
@@ -131,8 +135,10 @@ class UserController {
   async deleteMessage(req, res, next) {
     try {
       const { messageId } = req.params
-      await messageModel.findByIdAndDelete(messageId)
-      res.status(200).json({ message: 'Message deleted successfully', success: true })
+      const deletedMessage = await messageModel.findByIdAndDelete(messageId)
+      res
+        .status(200)
+        .json({ deletedMessage, message: 'Message deleted successfully', success: true })
     } catch (error) {
       next(error)
     }
@@ -198,7 +204,7 @@ class UserController {
         allMessages.push(updatedMessage)
       }
 
-      res.status(200).json({ allMessages, success: true })
+      res.status(200).json({ messages: allMessages, success: true })
     } catch (error) {
       next(error)
     }

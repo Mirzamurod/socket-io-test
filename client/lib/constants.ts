@@ -4,3 +4,9 @@ export const SOUNDS = [
   { value: 'sending', label: 'Belli' },
   { value: 'sending2', label: 'Oranger' },
 ]
+
+export const CONST = {
+  READ: 'read',
+  DELIVERED: 'delivered',
+  SENT: 'sent',
+}
